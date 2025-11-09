@@ -55,10 +55,10 @@ You can either install via WSL (recommended) or using powershell (not covered, b
 5. Install Go on Windows using WSL:
 ```bash
 # 1. Get the Go binary
-wget https://dl.google.com/go/go1.23.0.linux-amd64.tar.gz
+wget https://dl.google.com/go/go1.24.4.linux-amd64.tar.gz
 
 # 2. Extract the tarball
-sudo tar -xvf go1.23.0.linux-amd64.tar.gz
+sudo tar -xvf go1.24.4.linux-amd64.tar.gz
 
 # 3. Move the extracted folder to /usr/local
 sudo mv go /usr/local
