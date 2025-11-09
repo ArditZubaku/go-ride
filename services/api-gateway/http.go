@@ -7,6 +7,7 @@ import (
 )
 
 func handleTripPreview(w http.ResponseWriter, r *http.Request) {
+	// time.Sleep(9 * time.Second)
 	// We let the mux handle this
 	// if r.Method != http.MethodPost {
 	// 	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
