@@ -27,7 +27,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:    httpAddr,
-		Handler: mux,
+		Handler: enableCORS(mux),
 	}
 
 	serverErrorsChan := make(chan error, 1)
