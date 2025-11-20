@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,13 +9,6 @@ import (
 )
 
 func handleTripPreview(w http.ResponseWriter, r *http.Request) {
-	// time.Sleep(9 * time.Second)
-	// We let the mux handle this
-	// if r.Method != http.MethodPost {
-	// 	http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-	// 	return
-	// }
-	// var reqBody previewTripRequest
 	reqBody := new(previewTripRequest)
 	if err := json.NewDecoder(r.Body).Decode(reqBody); err != nil {
 		http.Error(w, "Failed to parse JSON data", http.StatusBadRequest)
@@ -30,36 +22,22 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonBody, err := json.Marshal(reqBody)
-	if err != nil {
-		http.Error(w, "Failed to marshal request body to JSON", http.StatusInternalServerError)
-		return
-	}
-	reader := bytes.NewReader(jsonBody)
-
+	// TODO: This can be done better - don't create a new connection for each req
 	tripService, err := grpc_clients.NewTripServiceClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer tripService.Close()
 
-	// tripService.Client.PreviewTrip()
-
-	resp, err := http.Post("http://trip-service:8083/preview", "application/json", reader)
+	tripPreview, err := tripService.Client.PreviewTrip(r.Context(), reqBody.toProto())
 	if err != nil {
-		log.Printf("Error contacting trip service: %v", err)
+		errMsg := "Failed to preview the trip"
+		log.Printf("%s: %v", errMsg, err)
+		http.Error(w, errMsg, http.StatusInternalServerError)
 		return
 	}
 
-	defer resp.Body.Close()
-
-	var resBody any
-	if err := json.NewDecoder(resp.Body).Decode(resBody); err != nil {
-		http.Error(w, "Failed to parse JSON data from trip service", http.StatusBadRequest)
-		return
-	}
-
-	res := contracts.APIResponse{Data: "OK", Error: nil}
+	res := contracts.APIResponse{Data: tripPreview, Error: nil}
 
 	writeJSON(w, http.StatusCreated, res)
 }
