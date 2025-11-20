@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	infraGRPC "ride-sharing/services/trip-service/internal/infrastructure/grpc"
+
 	"google.golang.org/grpc"
 )
 
@@ -18,7 +20,7 @@ const GRPC_ADDR = ":9083"
 
 func main() {
 	inMemRepo := repository.NewInMemRepository()
-	_ = service.NewService(inMemRepo) // TODO: use svc when grpc handler is implemented
+	svc := service.NewService(inMemRepo)
 
 	listener, err := net.Listen("tcp", GRPC_ADDR)
 	if err != nil {
@@ -26,7 +28,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	// TODO: init grpc handler impl
+	_ = infraGRPC.NewHandler(grpcServer, svc)
 
 	log.Printf("Starting the gRPC server of Trip Service on addr: %s", listener.Addr().String())
 
