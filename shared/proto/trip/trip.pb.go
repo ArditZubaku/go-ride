@@ -302,7 +302,7 @@ type RideFare struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	UserID            string                 `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
-	PkgSlug           string                 `protobuf:"bytes,3,opt,name=pkgSlug,proto3" json:"pkgSlug,omitempty"`
+	PackageSlug       string                 `protobuf:"bytes,3,opt,name=packageSlug,proto3" json:"packageSlug,omitempty"`
 	TotalPriceInCents float64                `protobuf:"fixed64,4,opt,name=totalPriceInCents,proto3" json:"totalPriceInCents,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
@@ -352,9 +352,9 @@ func (x *RideFare) GetUserID() string {
 	return ""
 }
 
-func (x *RideFare) GetPkgSlug() string {
+func (x *RideFare) GetPackageSlug() string {
 	if x != nil {
-		return x.PkgSlug
+		return x.PackageSlug
 	}
 	return ""
 }
@@ -389,11 +389,11 @@ const file_trip_proto_rawDesc = "" +
 	"\bdistance\x18\x02 \x01(\x01R\bdistance\x12\x1a\n" +
 	"\bduration\x18\x03 \x01(\x01R\bduration\">\n" +
 	"\bGeometry\x122\n" +
-	"\vcoordinates\x18\x01 \x03(\v2\x10.trip.CoordinateR\vcoordinates\"z\n" +
+	"\vcoordinates\x18\x01 \x03(\v2\x10.trip.CoordinateR\vcoordinates\"\x82\x01\n" +
 	"\bRideFare\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
-	"\x06userID\x18\x02 \x01(\tR\x06userID\x12\x18\n" +
-	"\apkgSlug\x18\x03 \x01(\tR\apkgSlug\x12,\n" +
+	"\x06userID\x18\x02 \x01(\tR\x06userID\x12 \n" +
+	"\vpackageSlug\x18\x03 \x01(\tR\vpackageSlug\x12,\n" +
 	"\x11totalPriceInCents\x18\x04 \x01(\x01R\x11totalPriceInCents2H\n" +
 	"\vTripService\x129\n" +
 	"\vPreviewTrip\x12\x14.trip.PreviewTripReq\x1a\x14.trip.PreviewTripResB\x18Z\x16shared/proto/trip;tripb\x06proto3"
