@@ -68,7 +68,7 @@ func handleDriversWS(w http.ResponseWriter, r *http.Request) {
 		PackageSlug    string `json:"packageSlug"`
 	}
 
-	msg := contracts.WSMessage{
+	msg := contracts.WSMessage[Driver]{
 		Type: "driver.cmd.register",
 		Data: Driver{
 			ID:             userID,
