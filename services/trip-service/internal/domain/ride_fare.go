@@ -1,6 +1,11 @@
 package domain
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	pb "ride-sharing/shared/proto/trip"
+	"slices"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type RideFareModel struct {
 	ID                primitive.ObjectID
@@ -8,4 +13,23 @@ type RideFareModel struct {
 	PackageSlug       string // ex. van, luxury, sedan
 	TotalPriceInCents float64
 	// ExpiresAt         time.Time
+}
+
+func (r *RideFareModel) ToProto() *pb.RideFare {
+	return &pb.RideFare{
+		Id:                r.ID.Hex(),
+		UserID:            r.UserID,
+		PackageSlug:       r.PackageSlug,
+		TotalPriceInCents: r.TotalPriceInCents,
+	}
+}
+
+func RideFareModelsToProtos(fares []*RideFareModel) []*pb.RideFare {
+	return slices.Collect(func(yield func(*pb.RideFare) bool) {
+		for _, f := range fares {
+			if !yield(f.ToProto()) {
+				return
+			}
+		}
+	})
 }
