@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"ride-sharing/services/trip-service/internal/domain"
 	pb "ride-sharing/shared/proto/trip"
 	"ride-sharing/shared/types"
@@ -46,14 +45,20 @@ func (h *handler) PreviewTrip(
 	}
 
 	route, err := h.service.GetRoute(ctx, pickup, destination)
-	fmt.Printf("ROUTE: %+v", route)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to get route: %v", err)
+	}
+
+	// Estimate the ride fares prices based on the route (ex. distance)
+	estimatedFares := h.service.EstimaPkgsPriceWithRoute(route)
+	fares, err := h.service.GenerateTripFares(ctx, estimatedFares, req.UserID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to generate the ride fares: %v", err)
 	}
 
 	return &pb.PreviewTripRes{
 		Route:     route.ToProto(),
 		TripID:    "",
-		RideFares: make([]*pb.RideFare, 0),
+		RideFares: domain.RideFareModelsToProtos(fares),
 	}, nil
 }
