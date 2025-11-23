@@ -62,3 +62,25 @@ func (h *handler) PreviewTrip(
 		RideFares: domain.RideFareModelsToProtos(fares),
 	}, nil
 }
+
+func (h *handler) CreateTrip(ctx context.Context, req *pb.CreateTripReq) (*pb.CreateTripRes, error) {
+	fareID := req.GetRideFareID()
+	userID := req.GetUserID()
+
+	fare, err := h.service.GetFare(ctx, fareID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "getFareErr: %v", err.Error())
+	}
+
+	rightFare, err := h.service.ValidateFare(fare, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "validateFareErr: %v", err.Error())
+	}
+
+	trip, err := h.service.CreateTrip(ctx, rightFare)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create trip: %v", err)
+	}
+
+	return &pb.CreateTripRes{TripID: trip.ID.Hex()}, nil
+}
