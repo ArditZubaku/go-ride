@@ -9,6 +9,7 @@ import (
 	"ride-sharing/services/trip-service/internal/domain"
 	tripTypes "ride-sharing/services/trip-service/pkg/types"
 	"ride-sharing/shared/env"
+	"ride-sharing/shared/proto/trip"
 	"ride-sharing/shared/types"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,6 +34,7 @@ func (s *service) CreateTrip(
 		UserID:   fare.UserID,
 		Status:   "pending",
 		RideFare: fare,
+		Driver:   &trip.TripDriver{},
 	}
 
 	return s.repo.CreateTrip(ctx, t)
@@ -107,6 +109,28 @@ func (s *service) GenerateTripFares(
 	}
 
 	return fares, nil
+}
+
+func (s *service) GetFare(
+	ctx context.Context,
+	fareID string,
+) (*domain.RideFareModel, error) {
+	fare, err := s.repo.GetRideFareByID(ctx, fareID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get trip fare: %w", err)
+	}
+
+	return fare, nil
+}
+
+func (s *service) ValidateFare(
+	fare *domain.RideFareModel,
+	userID string,
+) (*domain.RideFareModel, error) {
+	if fare.UserID != userID {
+		return nil, fmt.Errorf("fare does not belong to the user")
+	}
+	return fare, nil
 }
 
 func (s *service) estimateFareRoute(
