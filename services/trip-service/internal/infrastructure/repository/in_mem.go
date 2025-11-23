@@ -24,3 +24,11 @@ func (r *inMemRepository) CreateTrip(
 	r.trips[trip.ID.Hex()] = trip
 	return trip, nil
 }
+
+func (r *inMemRepository) SaveRideFare(
+	ctx context.Context,
+	fare *domain.RideFareModel,
+) error {
+	r.rideFares[fare.ID.Hex()] = fare
+	return nil
+}
