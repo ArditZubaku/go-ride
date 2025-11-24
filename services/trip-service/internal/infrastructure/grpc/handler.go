@@ -51,14 +51,13 @@ func (h *handler) PreviewTrip(
 
 	// Estimate the ride fares prices based on the route (ex. distance)
 	estimatedFares := h.service.EstimaPkgsPriceWithRoute(route)
-	fares, err := h.service.GenerateTripFares(ctx, estimatedFares, req.UserID)
+	fares, err := h.service.GenerateTripFares(ctx, estimatedFares, req.UserID, route)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to generate the ride fares: %v", err)
 	}
 
 	return &pb.PreviewTripRes{
 		Route:     route.ToProto(),
-		TripID:    "",
 		RideFares: domain.RideFareModelsToProtos(fares),
 	}, nil
 }
