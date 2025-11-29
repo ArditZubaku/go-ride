@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+
 	"ride-sharing/services/trip-service/internal/domain"
 	pb "ride-sharing/shared/proto/trip"
 	"ride-sharing/shared/types"

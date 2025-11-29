@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+
 	"ride-sharing/services/trip-service/internal/domain"
 )
 
@@ -40,7 +41,7 @@ func (r *inMemRepository) GetRideFareByID(
 ) (*domain.RideFareModel, error) {
 	fare, ok := r.rideFares[id]
 	if !ok {
-		return nil, fmt.Errorf("ride fare with id %s doesn't exist!", id)
+		return nil, fmt.Errorf("ride fare with id %s doesn't exist", id)
 	}
 
 	return fare, nil

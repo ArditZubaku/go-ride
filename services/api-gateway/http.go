@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"ride-sharing/services/api-gateway/grpc_clients"
+
+	"ride-sharing/services/api-gateway/grpcclients"
 	"ride-sharing/shared/contracts"
 )
 
@@ -23,7 +24,7 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: This can be done better - don't create a new connection for each req
-	tripService, err := grpc_clients.NewTripServiceClient()
+	tripService, err := grpcclients.NewTripServiceClient()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +56,7 @@ func handleTripStart(w http.ResponseWriter, r *http.Request) {
 	// Why we need to create a new client for each connection:
 	// because if a service is down, we don't want to block the whole application
 	// so we create a new client for each connection
-	tripService, err := grpc_clients.NewTripServiceClient()
+	tripService, err := grpcclients.NewTripServiceClient()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+
 	"ride-sharing/shared/contracts"
 	"ride-sharing/shared/util"
 
@@ -24,7 +25,7 @@ func handleRidersWS(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	userID := r.URL.Query().Get("userID")
-	if !(len(userID) > 0) {
+	if len(userID) <= 0 {
 		log.Println("No user ID provided")
 		return
 	}
@@ -49,13 +50,13 @@ func handleDriversWS(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	userID := r.URL.Query().Get("userID")
-	if !(len(userID) > 0) {
+	if len(userID) <= 0 {
 		log.Println("No user ID provided")
 		return
 	}
 
 	pkgSlug := r.URL.Query().Get("packageSlug")
-	if !(len(pkgSlug) > 0) {
+	if len(pkgSlug) <= 0 {
 		log.Println("No package slug provided")
 		return
 	}

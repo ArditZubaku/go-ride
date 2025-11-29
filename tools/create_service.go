@@ -30,7 +30,7 @@ func main() {
 
 	for _, dir := range dirs {
 		fullPath := filepath.Join(basePath, dir)
-		if err := os.MkdirAll(fullPath, 0755); err != nil {
+		if err := os.MkdirAll(fullPath, 0o755); err != nil {
 			fmt.Printf("Error creating directory %s: %v\n", dir, err)
 			os.Exit(1)
 		}
@@ -93,7 +93,7 @@ services/%s-service/
 5. **Flexibility**: Easy to swap implementations without affecting business logic
 `, *serviceName, *serviceName, *serviceName)
 
-	if err := os.WriteFile(readmePath, []byte(readmeContent), 0644); err != nil {
+	if err := os.WriteFile(readmePath, []byte(readmeContent), 0o644); err != nil {
 		fmt.Printf("Error creating README.md: %v\n", err)
 		os.Exit(1)
 	}

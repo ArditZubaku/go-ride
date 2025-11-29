@@ -1,9 +1,10 @@
 package domain
 
 import (
+	"slices"
+
 	tripTypes "ride-sharing/services/trip-service/pkg/types"
 	pb "ride-sharing/shared/proto/trip"
-	"slices"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

@@ -1,7 +1,8 @@
-package grpc_clients
+package grpcclients
 
 import (
 	"log"
+
 	"ride-sharing/shared/env"
 	pb "ride-sharing/shared/proto/trip"
 

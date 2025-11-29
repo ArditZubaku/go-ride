@@ -6,25 +6,26 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"ride-sharing/services/trip-service/internal/infrastructure/repository"
-	"ride-sharing/services/trip-service/internal/service"
 	"syscall"
 	"time"
+
+	"ride-sharing/services/trip-service/internal/infrastructure/repository"
+	"ride-sharing/services/trip-service/internal/service"
 
 	infraGRPC "ride-sharing/services/trip-service/internal/infrastructure/grpc"
 
 	"google.golang.org/grpc"
 )
 
-const GRPC_ADDR = ":9083"
+const GRPCAddr = ":9083"
 
 func main() {
 	inMemRepo := repository.NewInMemRepository()
 	svc := service.NewService(inMemRepo)
 
-	listener, err := net.Listen("tcp", GRPC_ADDR)
+	listener, err := net.Listen("tcp", GRPCAddr)
 	if err != nil {
-		log.Fatalf("Failed to start gRPC listener on %s: %v", GRPC_ADDR, err)
+		log.Fatalf("Failed to start gRPC listener on %s: %v", GRPCAddr, err)
 	}
 
 	grpcServer := grpc.NewServer()

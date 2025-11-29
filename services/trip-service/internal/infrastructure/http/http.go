@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
 	"ride-sharing/services/trip-service/internal/domain"
 	"ride-sharing/shared/types"
 )
