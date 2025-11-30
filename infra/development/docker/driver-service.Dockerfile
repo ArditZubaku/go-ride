@@ -4,4 +4,4 @@ WORKDIR /app
 COPY shared shared
 COPY build build
 
-ENTRYPOINT ["build/trip-service"]
+ENTRYPOINT ["build/driver-service"]

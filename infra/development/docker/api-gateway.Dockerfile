@@ -1,7 +1,7 @@
-FROM alpine
+FROM alpine:3.22.2
 WORKDIR /app
 
-ADD shared shared
-ADD build build
+COPY shared shared
+COPY build build
 
-ENTRYPOINT build/api-gateway
+ENTRYPOINT ["build/api-gateway"]
