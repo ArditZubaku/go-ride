@@ -1,6 +1,14 @@
 package main
 
-import pb "ride-sharing/shared/proto/driver"
+import (
+	math "math/rand/v2"
+	"sync"
+
+	pb "ride-sharing/shared/proto/driver"
+	"ride-sharing/shared/util"
+
+	"github.com/mmcloughlin/geohash"
+)
 
 type driverInMap struct {
 	Driver *pb.Driver
@@ -10,6 +18,7 @@ type driverInMap struct {
 
 type Service struct {
 	drivers []*driverInMap
+	mu      sync.RWMutex
 }
 
 func newService() *Service {
@@ -18,4 +27,45 @@ func newService() *Service {
 	}
 }
 
-// TODO: Register and unregister methods
+func (s *Service) RegisterDriver(driverID string, packageSlug string) (*pb.Driver, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	randomIndex := math.IntN(len(PredefinedRoutes))
+	randomRoute := PredefinedRoutes[randomIndex]
+
+	randomPlate := GenerateRandomPlate()
+	randomAvatar := util.GetRandomAvatar(randomIndex)
+
+	// we can ignore this property for now, but it must be sent to the frontend.
+	geohash := geohash.Encode(randomRoute[0][0], randomRoute[0][1])
+
+	driver := &pb.Driver{
+		Id:             driverID,
+		Geohash:        geohash,
+		Location:       &pb.Location{Latitude: randomRoute[0][0], Longitude: randomRoute[0][1]},
+		Name:           "Lando Norris",
+		PackageSlug:    packageSlug,
+		ProfilePicture: randomAvatar,
+		CarPlate:       randomPlate,
+	}
+
+	s.drivers = append(s.drivers, &driverInMap{Driver: driver})
+
+	return driver, nil
+}
+
+func (s *Service) UnregisterDriver(driverID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	filtered := s.drivers[:0] // reuse underlying array
+
+	for _, d := range s.drivers {
+		if d.Driver.Id != driverID {
+			filtered = append(filtered, d)
+		}
+	}
+
+	s.drivers = filtered
+}
