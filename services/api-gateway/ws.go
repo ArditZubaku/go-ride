@@ -4,7 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"ride-sharing/services/api-gateway/grpcclients"
 	"ride-sharing/shared/contracts"
+	"ride-sharing/shared/proto/driver"
 	"ride-sharing/shared/util"
 
 	"github.com/gorilla/websocket"
@@ -22,7 +24,8 @@ func handleRidersWS(w http.ResponseWriter, r *http.Request) {
 		log.Printf("WS upgrade failed: %v\n", err)
 		return
 	}
-	defer conn.Close()
+
+	defer util.CloseAndLog(conn, "handleRidersWS")
 
 	userID := r.URL.Query().Get("userID")
 	if len(userID) <= 0 {
@@ -47,7 +50,8 @@ func handleDriversWS(w http.ResponseWriter, r *http.Request) {
 		log.Printf("WS upgrade failed: %v\n", err)
 		return
 	}
-	defer conn.Close()
+
+	defer util.CloseAndLog(conn, "handleDriversWS")
 
 	userID := r.URL.Query().Get("userID")
 	if len(userID) <= 0 {
@@ -61,23 +65,47 @@ func handleDriversWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type Driver struct {
-		ID             string `json:"id"`
-		Name           string `json:"name"`
-		ProfilePicture string `json:"profilePicture"`
-		CarPlate       string `json:"carPlate"`
-		PackageSlug    string `json:"packageSlug"`
+	ctx := r.Context()
+
+	driverService, err := grpcclients.NewDriverServiceClient()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	msg := contracts.WSMessage[Driver]{
-		Type: "driver.cmd.register",
-		Data: Driver{
-			ID:             userID,
-			Name:           "TestUser",
-			ProfilePicture: util.GetRandomAvatar(1),
-			CarPlate:       "ABC123",
-			PackageSlug:    pkgSlug,
+	// Closing connections
+	defer func() {
+		_, err := driverService.Client.UnregisterDriver(
+			ctx,
+			&driver.RegisterDriverRequest{
+				DriverID:    userID,
+				PackageSlug: pkgSlug,
+			},
+		)
+		if err != nil {
+			// TODO: Handle this better
+			log.Println("Faied to unregister driver: ", userID)
+		}
+
+		driverService.Close()
+
+		log.Println("Driver unregistered: ", userID)
+	}()
+
+	driverData, err := driverService.Client.RegisterDriver(
+		ctx,
+		&driver.RegisterDriverRequest{
+			DriverID:    userID,
+			PackageSlug: pkgSlug,
 		},
+	)
+	if err != nil {
+		log.Printf("Error registering driver: %v", err)
+		return
+	}
+
+	msg := contracts.WSMessage[*driver.Driver]{
+		Type: "driver.cmd.register",
+		Data: driverData.Driver,
 	}
 
 	if err := conn.WriteJSON(msg); err != nil {
