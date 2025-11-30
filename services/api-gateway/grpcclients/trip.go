@@ -1,10 +1,9 @@
 package grpcclients
 
 import (
-	"log"
-
 	"ride-sharing/shared/env"
 	pb "ride-sharing/shared/proto/trip"
+	"ride-sharing/shared/util"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -38,9 +37,6 @@ func NewTripServiceClient() (*tripServiceClient, error) {
 
 func (c *tripServiceClient) Close() {
 	if c.conn != nil {
-		if err := c.conn.Close(); err != nil {
-			log.Printf("Error closing gRPC connection for trip service client: %v", err)
-			return
-		}
+		util.CloseAndLog(c.conn, "gRPC connection for trip service client")
 	}
 }
