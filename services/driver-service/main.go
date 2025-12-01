@@ -37,7 +37,7 @@ func main() {
 	rabbitMQURI := env.GetString(env.RabbitMQ.URI, env.RabbitMQDefaults.URI)
 	rabbitMQ, err := messaging.NewRabbitMQ(rabbitMQURI)
 	if err != nil {
-		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+		log.Fatal(err)
 	}
 	defer rabbitMQ.Close()
 
