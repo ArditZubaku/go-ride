@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"ride-sharing/services/trip-service/internal/domain"
+	"ride-sharing/services/trip-service/internal/infrastructure/events"
+	"ride-sharing/shared/contracts"
 	pb "ride-sharing/shared/proto/trip"
 	"ride-sharing/shared/types"
 
@@ -15,14 +17,20 @@ import (
 type handler struct {
 	pb.UnimplementedTripServiceServer
 
-	service domain.TripService
+	service   domain.TripService
+	publisher events.Publisher
 }
 
-func NewHandler(server *grpc.Server, service domain.TripService) *handler {
+func NewHandler(
+	server *grpc.Server,
+	service domain.TripService,
+	publisher events.Publisher,
+) *handler {
 	// handler := new(handler)
 	// handler.service = service
 	handler := &handler{
-		service: service,
+		service:   service,
+		publisher: publisher,
 	}
 
 	// This way gRPC is going to be able to call the handler's methods
@@ -80,6 +88,10 @@ func (h *handler) CreateTrip(ctx context.Context, req *pb.CreateTripReq) (*pb.Cr
 	trip, err := h.service.CreateTrip(ctx, rightFare)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create trip: %v", err)
+	}
+
+	if err := h.publisher.Publish(ctx, contracts.TripEventCreated); err != nil {
+		return nil, status.Errorf(codes.Internal, "publishErr: %v", err.Error())
 	}
 
 	return &pb.CreateTripRes{TripID: trip.ID.Hex()}, nil
