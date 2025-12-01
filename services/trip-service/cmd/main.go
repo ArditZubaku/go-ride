@@ -9,10 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	infraGRPC "ride-sharing/services/trip-service/internal/infrastructure/grpc"
 	"ride-sharing/services/trip-service/internal/infrastructure/repository"
 	"ride-sharing/services/trip-service/internal/service"
-
-	infraGRPC "ride-sharing/services/trip-service/internal/infrastructure/grpc"
+	"ride-sharing/shared/env"
+	"ride-sharing/shared/messaging"
 
 	"google.golang.org/grpc"
 )
@@ -27,6 +28,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to start gRPC listener on %s: %v", GRPCAddr, err)
 	}
+
+	rabbitMQURI := env.GetString(env.RabbitMQ.URI, env.RabbitMQDefaults.URI)
+	rabbitMQ, err := messaging.NewRabbitMQ(rabbitMQURI)
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
+	defer rabbitMQ.Close()
+
+	log.Println("Successfully connected to RabbitMQ")
 
 	grpcServer := grpc.NewServer()
 	_ = infraGRPC.NewHandler(grpcServer, svc)
