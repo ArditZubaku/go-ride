@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"ride-sharing/services/trip-service/internal/infrastructure/events"
 	infraGRPC "ride-sharing/services/trip-service/internal/infrastructure/grpc"
 	"ride-sharing/services/trip-service/internal/infrastructure/repository"
 	"ride-sharing/services/trip-service/internal/service"
@@ -32,14 +33,16 @@ func main() {
 	rabbitMQURI := env.GetString(env.RabbitMQ.URI, env.RabbitMQDefaults.URI)
 	rabbitMQ, err := messaging.NewRabbitMQ(rabbitMQURI)
 	if err != nil {
-		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+		log.Fatal(err)
 	}
 	defer rabbitMQ.Close()
 
 	log.Println("Successfully connected to RabbitMQ")
 
+	publisher := events.NewPublisher(rabbitMQ)
+
 	grpcServer := grpc.NewServer()
-	_ = infraGRPC.NewHandler(grpcServer, svc)
+	_ = infraGRPC.NewHandler(grpcServer, svc, publisher)
 
 	log.Printf("Starting the gRPC server of Trip Service on addr: %s", listener.Addr().String())
 
