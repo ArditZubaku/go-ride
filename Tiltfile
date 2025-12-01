@@ -9,6 +9,11 @@ load('ext://restart_process', 'docker_build_with_restart')
 k8s_yaml('./infra/development/k8s/app-config.yaml')
 
 ### End of K8s Config ###
+
+### RabbitMQ Config ###
+k8s_yaml('./infra/development/k8s/rabbitmq-deployment.yaml')
+k8s_resource('rabbitmq', port_forwards=['5672', '15672'], labels='tooling')
+### End of RabbitMQ Config ###
 ### API Gateway ###
 
 gateway_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/api-gateway ./services/api-gateway'
