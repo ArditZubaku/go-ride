@@ -1,20 +1,16 @@
-# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+# https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: rabbitmq
   labels:
     app: rabbitmq
 spec:
+  serviceName: rabbitmq
   selector:
     matchLabels:
       app: rabbitmq
   replicas: 1
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -24,6 +20,9 @@ spec:
         - name: rabbitmq
           image: rabbitmq:3-management
           imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5672 # AMQP Port
+            - containerPort: 15672 # Management UI Port
           resources:
             requests:
               cpu: 250m
@@ -42,9 +41,11 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-credentials
                   key: password
-          ports:
-            - containerPort: 5672 # AMQP Port
-            - containerPort: 15672 # Management UI Port
+            - name: RABBITMQ_MNESIA_BASE
+              value: /var/lib/rabbitmq/mnesia
+          volumeMounts:
+            - name: rabbitmq-data
+              mountPath: /var/lib/rabbitmq
           readinessProbe:
             exec:
               command: ["rabbitmq-diagnostics", "check_running"]
@@ -59,6 +60,14 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 15
       restartPolicy: Always
+  volumeClaimTemplates:
+    - metadata:
+        name: rabbitmq-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
 ---
 # https://kubernetes.io/docs/concepts/services-networking/service/
 apiVersion: v1
