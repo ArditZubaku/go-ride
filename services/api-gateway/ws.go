@@ -25,7 +25,7 @@ func handleRidersWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer util.CloseAndLog(conn, "handleRidersWS")
+	defer util.CloseOrLog(conn, "handleRidersWS")
 
 	userID := r.URL.Query().Get("userID")
 	if len(userID) <= 0 {
@@ -51,7 +51,7 @@ func handleDriversWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer util.CloseAndLog(conn, "handleDriversWS")
+	defer util.CloseOrLog(conn, "handleDriversWS")
 
 	userID := r.URL.Query().Get("userID")
 	if len(userID) <= 0 {

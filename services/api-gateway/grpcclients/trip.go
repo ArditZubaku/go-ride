@@ -37,6 +37,6 @@ func NewTripServiceClient() (*tripServiceClient, error) {
 
 func (c *tripServiceClient) Close() {
 	if c.conn != nil {
-		util.CloseAndLog(c.conn, "gRPC connection for trip service client")
+		util.CloseOrLog(c.conn, "gRPC connection for trip service client")
 	}
 }

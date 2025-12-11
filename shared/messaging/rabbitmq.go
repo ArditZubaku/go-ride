@@ -1,4 +1,5 @@
-// Package messaging
+// Package messaging provides messaging system capabilities
+// It currently uses RabbitMQ
 package messaging
 
 import (
@@ -23,7 +24,7 @@ func NewRabbitMQ(uri string) (*RabbitMQ, error) {
 
 	ch, err := conn.Channel()
 	if err != nil {
-		util.CloseAndLog(conn, "RabbitMQ connection")
+		util.CloseOrLog(conn, "RabbitMQ connection")
 		return nil, fmt.Errorf("failed to create channel on RabbitMQ: %v", err)
 	}
 
@@ -48,11 +49,12 @@ func (r *RabbitMQ) GetChannel() *amqp.Channel {
 	return r.ch
 }
 
-func (r *RabbitMQ) PublishWithContext(
+func (r *RabbitMQ) Publish(
 	ctx context.Context,
 	routingKey string,
 	message string,
 ) error {
+	// I am passing the ctx just because - but this API doesn't honour it...
 	return r.ch.PublishWithContext(
 		ctx,
 		"",         // exchange
@@ -70,12 +72,12 @@ func (r *RabbitMQ) Close() {
 	if r.conn == nil {
 		return
 	}
-	util.CloseAndLog(r.conn, "RabbitMQ connection")
+	util.CloseOrLog(r.conn, "RabbitMQ connection")
 
 	if r.ch == nil {
 		return
 	}
-	util.CloseAndLog(r.ch, "RabbitMQ channel")
+	util.CloseOrLog(r.ch, "RabbitMQ channel")
 }
 
 func (r *RabbitMQ) setupExchanges() error {

@@ -1,3 +1,4 @@
+// Package grpc implements the gRPC handler for Trip operations
 package grpc
 
 import (
@@ -71,7 +72,10 @@ func (h *handler) PreviewTrip(
 	}, nil
 }
 
-func (h *handler) CreateTrip(ctx context.Context, req *pb.CreateTripReq) (*pb.CreateTripRes, error) {
+func (h *handler) CreateTrip(
+	ctx context.Context,
+	req *pb.CreateTripReq,
+) (*pb.CreateTripRes, error) {
 	fareID := req.GetRideFareID()
 	userID := req.GetUserID()
 

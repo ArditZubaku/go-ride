@@ -1,3 +1,4 @@
+// Package util provides small utility functions to be used across the project
 package util
 
 import (
@@ -11,7 +12,7 @@ func GetRandomAvatar(index int) string {
 	return fmt.Sprintf("https://randomuser.me/api/portraits/lego/%d.jpg", index)
 }
 
-func CloseAndLog(c io.Closer, name string) {
+func CloseOrLog(c io.Closer, name string) {
 	if err := c.Close(); err != nil {
 		log.Printf("Error closing %s: %v", name, err)
 	}

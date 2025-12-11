@@ -1,3 +1,4 @@
+// Package grpcclients implements all the gRPC clients (driver, trip, etc)
 package grpcclients
 
 import (
@@ -38,6 +39,6 @@ func NewDriverServiceClient() (*driverServiceClient, error) {
 
 func (c *driverServiceClient) Close() {
 	if c.conn != nil {
-		util.CloseAndLog(c.conn, "gRPC connection for driver service client")
+		util.CloseOrLog(c.conn, "gRPC connection for driver service client")
 	}
 }
