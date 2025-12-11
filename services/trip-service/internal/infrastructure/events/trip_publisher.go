@@ -22,5 +22,5 @@ func (t *TripEventsPublisher) Publish(ctx context.Context, event string) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	return t.rabbitMQ.Publish(ctx, "update_me", event)
+	return t.rabbitMQ.Publish(ctx, "hello", event)
 }
