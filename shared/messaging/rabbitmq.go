@@ -5,6 +5,7 @@ package messaging
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"ride-sharing/shared/util"
 
@@ -32,6 +33,12 @@ func NewRabbitMQ(uri string) (*RabbitMQ, error) {
 	rmq.conn = conn
 	rmq.ch = ch
 
+	// Monitor connection closures
+	go rmq.monitorConnection()
+
+	// Monitor channel closures
+	go rmq.monitorChannel()
+
 	if err := rmq.setupExchanges(); err != nil {
 		rmq.Close()
 		return nil, fmt.Errorf("failed to setup exchanges on RabbitMQ: %v", err)
@@ -43,6 +50,26 @@ func NewRabbitMQ(uri string) (*RabbitMQ, error) {
 	}
 
 	return rmq, nil
+}
+
+// monitorConnection listens for connection close events and logs them
+func (r *RabbitMQ) monitorConnection() {
+	closeChan := r.conn.NotifyClose(make(chan *amqp.Error))
+	err := <-closeChan
+	if err != nil {
+		log.Printf("[RabbitMQ] Connection lost: %v (code: %d, reason: %s)", err, err.Code, err.Reason)
+	}
+	// If err is nil, connection was closed cleanly (e.g., via Close()), no need to log
+}
+
+// monitorChannel listens for channel close events and logs them
+func (r *RabbitMQ) monitorChannel() {
+	closeChan := r.ch.NotifyClose(make(chan *amqp.Error))
+	err := <-closeChan
+	if err != nil {
+		log.Printf("[RabbitMQ] Channel lost: %v (code: %d, reason: %s)", err, err.Code, err.Reason)
+	}
+	// If err is nil, channel was closed cleanly (e.g., via Close()), no need to log
 }
 
 func (r *RabbitMQ) GetChannel() *amqp.Channel {
