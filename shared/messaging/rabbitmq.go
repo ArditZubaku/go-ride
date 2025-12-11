@@ -62,8 +62,9 @@ func (r *RabbitMQ) Publish(
 		false,      // mandatory
 		false,      // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(message),
+			ContentType:  "text/plain",
+			Body:         []byte(message),
+			DeliveryMode: amqp.Persistent,
 		},
 	)
 }
@@ -87,7 +88,7 @@ func (r *RabbitMQ) setupExchanges() error {
 func (r *RabbitMQ) setupQueues() error {
 	_, err := r.ch.QueueDeclare(
 		"hello", // name
-		false,   // durable
+		true,    // durable
 		false,   // delete when unused
 		false,   // exclusive
 		false,   // no-wait
