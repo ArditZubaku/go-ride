@@ -93,7 +93,10 @@ func (r *RabbitMQ) monitorConnection() {
 			return
 		}
 
-		log.Printf("[RabbitMQ] Connection lost: %v (code: %d, reason: %s). Attempting to reconnect...", err, err.Code, err.Reason)
+		log.Printf(
+			"[RabbitMQ] Connection lost (code: %d, reason: %s): %v. Attempting to reconnect...",
+			err.Code, err.Reason, err,
+		)
 
 		// Attempt to reconnect with retry
 		ctx := context.Background()
@@ -151,7 +154,10 @@ func (r *RabbitMQ) monitorChannel() {
 			return
 		}
 
-		log.Printf("[RabbitMQ] Channel lost: %v (code: %d, reason: %s). Attempting to recreate...", err, err.Code, err.Reason)
+		log.Printf(
+			"[RabbitMQ] Channel lost (code: %d, reason: %s): %v. Attempting to recreate...",
+			err.Code, err.Reason, err,
+		)
 
 		// Attempt to recreate channel with retry
 		ctx := context.Background()
