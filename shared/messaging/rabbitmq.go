@@ -23,6 +23,8 @@ type RabbitMQ struct {
 	shutdown bool
 }
 
+type MessageHandler func(context.Context, amqp.Delivery) error
+
 func NewRabbitMQ(uri string) (*RabbitMQ, error) {
 	rmq := &RabbitMQ{
 		uri:      uri,
@@ -40,6 +42,99 @@ func NewRabbitMQ(uri string) (*RabbitMQ, error) {
 	go rmq.monitorChannel()
 
 	return rmq, nil
+}
+
+func (r *RabbitMQ) GetChannel() *amqp.Channel {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.ch
+}
+
+func (r *RabbitMQ) Publish(
+	ctx context.Context,
+	routingKey string,
+	message string,
+) error {
+	retryCfg := retry.Config{
+		MaxRetries:  3,
+		InitialWait: 100 * time.Millisecond,
+		MaxWait:     2 * time.Second,
+	}
+
+	return retry.WithBackoff(ctx, retryCfg, func() error {
+		r.mu.RLock()
+		if r.shutdown {
+			r.mu.RUnlock()
+			return fmt.Errorf("RabbitMQ client is shutdown")
+		}
+		if r.ch == nil {
+			r.mu.RUnlock()
+			return fmt.Errorf("RabbitMQ channel is nil")
+		}
+		ch := r.ch
+		r.mu.RUnlock()
+
+		err := ch.PublishWithContext(
+			ctx,
+			"",         // exchange
+			routingKey, // routing key
+			false,      // mandatory
+			false,      // immediate
+			amqp.Publishing{
+				ContentType:  "text/plain",
+				Body:         []byte(message),
+				DeliveryMode: amqp.Persistent,
+			},
+		)
+
+		// If publish fails due to connection/channel issues, the monitors will handle reconnection
+		// and the next retry should succeed
+		return err
+	})
+}
+
+func (r *RabbitMQ) Close() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.shutdown = true
+
+	if r.ch != nil {
+		util.CloseOrLog(r.ch, "RabbitMQ channel")
+		r.ch = nil
+	}
+
+	if r.conn != nil {
+		util.CloseOrLog(r.conn, "RabbitMQ connection")
+		r.conn = nil
+	}
+}
+
+func (r *RabbitMQ) ConsumeMessages(queueName string, handler MessageHandler) error {
+	msgs, err := r.ch.Consume(
+		queueName, // queue
+		"",        // consumer
+		true,      // auto-ack
+		false,     // exclusive
+		false,     // no-local
+		false,     // no-wait
+		nil,       // args
+	)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for msg := range msgs {
+			log.Printf("Received a message: %s", msg.Body)
+
+			if err := handler(context.Background(), msg); err != nil {
+				log.Fatalf("failed to handle the message: %v", err)
+			}
+		}
+	}()
+
+	return nil
 }
 
 // connect establishes a new connection and channel, and sets up exchanges/queues
@@ -208,72 +303,6 @@ func (r *RabbitMQ) monitorChannel() {
 
 		log.Printf("[RabbitMQ] Successfully recreated channel")
 		// Loop back to monitor the NEW channel (NotifyClose only works once per channel)
-	}
-}
-
-func (r *RabbitMQ) GetChannel() *amqp.Channel {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.ch
-}
-
-func (r *RabbitMQ) Publish(
-	ctx context.Context,
-	routingKey string,
-	message string,
-) error {
-	retryCfg := retry.Config{
-		MaxRetries:  3,
-		InitialWait: 100 * time.Millisecond,
-		MaxWait:     2 * time.Second,
-	}
-
-	return retry.WithBackoff(ctx, retryCfg, func() error {
-		r.mu.RLock()
-		if r.shutdown {
-			r.mu.RUnlock()
-			return fmt.Errorf("RabbitMQ client is shutdown")
-		}
-		if r.ch == nil {
-			r.mu.RUnlock()
-			return fmt.Errorf("RabbitMQ channel is nil")
-		}
-		ch := r.ch
-		r.mu.RUnlock()
-
-		err := ch.PublishWithContext(
-			ctx,
-			"",         // exchange
-			routingKey, // routing key
-			false,      // mandatory
-			false,      // immediate
-			amqp.Publishing{
-				ContentType:  "text/plain",
-				Body:         []byte(message),
-				DeliveryMode: amqp.Persistent,
-			},
-		)
-
-		// If publish fails due to connection/channel issues, the monitors will handle reconnection
-		// and the next retry should succeed
-		return err
-	})
-}
-
-func (r *RabbitMQ) Close() {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	r.shutdown = true
-
-	if r.ch != nil {
-		util.CloseOrLog(r.ch, "RabbitMQ channel")
-		r.ch = nil
-	}
-
-	if r.conn != nil {
-		util.CloseOrLog(r.conn, "RabbitMQ connection")
-		r.conn = nil
 	}
 }
 
