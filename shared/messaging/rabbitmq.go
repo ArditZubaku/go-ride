@@ -111,6 +111,17 @@ func (r *RabbitMQ) Close() {
 }
 
 func (r *RabbitMQ) ConsumeMessages(queueName string, handler MessageHandler) error {
+	// Set prefetch count to 1 for fair dispatch
+	// This tells RabbitMQ not to give more than one message to a service at a time
+	// The worker will only get the next message after it has ack-ed the previous one
+	err := r.ch.Qos(
+		1,     // prefetchCount: Limit to 1 unack-ed message per consumer
+		0,     // prefetchSize: No specific limit on message size
+		false, // global: Apply prefetchCount to each consumer individually
+	)
+	if err != nil {
+		return fmt.Errorf("failed to set Qos: %v", err)
+	}
 	msgs, err := r.ch.Consume(
 		queueName, // queue
 		"",        // consumer
